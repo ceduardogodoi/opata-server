@@ -1,19 +1,28 @@
-import { Context } from 'koa'
-import { AnyZodObject } from 'zod'
-import { ProblemDetailError } from '../models/ProblemDetailError'
+import type { Context, Next } from 'koa'
+import type { AnyZodObject} from 'zod'
+import { StatusCodes } from 'http-status-codes'
+import { FormValidationError } from '../models/form-validation.error'
 
 export function validate(schema: AnyZodObject) {
-  return function (ctx: Context) {
+  return async function (ctx: Context, next: Next) {
     const result = schema.safeParse(ctx.request.body)
 
-    if (!result.success) {
-      const error = new ProblemDetailError({
-        instance: 'https://example.com',
-      })
+    if (result.success) {
+      await next()
       
-      ctx.status = error.status
-      ctx.body = error
+      return
     }
+
+    const error = new FormValidationError()
+      .setInstance(ctx.request.url)
+      .setExtensions(result.error.flatten().fieldErrors)
+      .build()
+
+    ctx.status = StatusCodes.BAD_REQUEST
+    ctx.body = error
+    ctx.set(
+      'Content-Type',
+      'application/problem+json; charset=utf-8',
+    )
   }
 }
-
