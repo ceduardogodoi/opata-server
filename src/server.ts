@@ -1,14 +1,16 @@
-import Koa, { Context } from 'koa'
+import Koa from 'koa'
 
 import { env } from './env'
 import { prisma } from './libs/prisma'
 import { animalsRouter } from './routes/animals.routes'
+import { testsRouter } from './routes/tests.routes'
 
 async function main(): Promise<void> {
   const app = new Koa()
 
   // routes
   app.use(animalsRouter.routes())
+  app.use(testsRouter.routes())
 
   // run
   app.listen(env.PORT, () => {
@@ -19,14 +21,13 @@ async function main(): Promise<void> {
   })
 }
 
-main()
-  .then(async () => {
-    await prisma.$disconnect()
-  })
-  .catch(async error => {
-    console.error(error)
+try {
+  await main()
+  await prisma.$disconnect()
 
-    await prisma.$disconnect()
+} catch (error) {
+  console.error(error)
 
-    process.exit(1)
-  })
+  await prisma.$disconnect()
+  process.exit(1)
+}

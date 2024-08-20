@@ -1,5 +1,5 @@
 import { StatusCodes } from 'http-status-codes'
-import koaBody from 'koa-body'
+import { koaBody } from 'koa-body'
 import Router from '@koa/router'
 
 import { saveAnimal, findAllAnimals } from '../services/animals.service'
