@@ -3,14 +3,14 @@ import Koa from 'koa'
 import { env } from './env'
 import { prisma } from './libs/prisma'
 import { animalsRouter } from './routes/animals.routes'
-import { testsRouter } from './routes/tests.routes'
+import { authenticationRouter } from './routes/authentication.routes'
 
 async function main(): Promise<void> {
   const app = new Koa()
 
   // routes
   app.use(animalsRouter.routes())
-  app.use(testsRouter.routes())
+  app.use(authenticationRouter.routes())
 
   // run
   app.listen(env.PORT, () => {
