@@ -17,9 +17,14 @@ authenticationRouter.post(
   async (ctx) => {
     const credentials = authenticationParamsSchema.parse(ctx.request.body);
 
-    await authenticationService.signUp(credentials);
-
-    ctx.status = StatusCodes.OK;
+    const [error, data] = await authenticationService.signUp(credentials);
+    if (error) {
+      ctx.status = error.status;
+      ctx.body = error;
+    } else {
+      ctx.status = StatusCodes.OK;
+      ctx.body = data;
+    }
   }
 );
 
