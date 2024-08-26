@@ -1,8 +1,11 @@
 import crypto from "node:crypto";
 import {
   AuthFlowType,
+  CodeMismatchException,
   CognitoIdentityProviderClient,
   ConfirmSignUpCommand,
+  ConfirmSignUpCommandOutput,
+  ExpiredCodeException,
   InitiateAuthCommand,
   InvalidPasswordException,
   SignUpCommand,
@@ -10,13 +13,15 @@ import {
   UsernameExistsException,
 } from "@aws-sdk/client-cognito-identity-provider";
 import { getCognitoInstance } from "../libs/aws-cognito";
-import { AuthenticationParams } from "../validations/authentication/sign-in.validation";
+import { SignInParams } from "../validations/authentication/sign-in.validation";
 import { env } from "../env";
 import { ConfirmSignUpParams } from "../validations/authentication/confirm-sign-up.validation";
 import { UsernameExistsDetailException } from "../models/exceptions/username-exists-detail.exception";
 import { Result } from "../models/result";
 import { UnknownException } from "../models/exceptions/unknown.exception";
 import { InvalidPasswordDetailException } from "../models/exceptions/invalid-password-detail.exception";
+import { CodeMismatchDetailException } from "../models/exceptions/code-mismatch-detail.exception";
+import { ExpiredCodeDetailException } from "../models/exceptions/expired-code-detail.exception";
 
 export class AuthenticationService {
   readonly #cognito: CognitoIdentityProviderClient;
@@ -33,11 +38,11 @@ export class AuthenticationService {
   }
 
   public async signUp(
-    credentials: AuthenticationParams
+    credentials: SignInParams
   ): Promise<Result<SignUpCommandOutput>> {
-    const { email, password } = credentials;
-
     try {
+      const { email, password } = credentials;
+
       const command = new SignUpCommand({
         ClientId: env.AWS_COGNITO_CLIENT_ID,
         Username: email,
@@ -60,28 +65,35 @@ export class AuthenticationService {
     }
   }
 
-  public async confirmSignUp(params: ConfirmSignUpParams) {
-    const { email, confirmationCode } = params;
-
-    const command = new ConfirmSignUpCommand({
-      ClientId: env.AWS_COGNITO_CLIENT_ID,
-      Username: email,
-      ConfirmationCode: confirmationCode,
-      SecretHash: this.#generateSecretHash(email),
-    });
-
-    // scenarios to cover
-    // invalid confirmation code
-    // invalid email
-
+  public async confirmSignUp(
+    params: ConfirmSignUpParams
+  ): Promise<Result<ConfirmSignUpCommandOutput>> {
     try {
+      const { email, confirmationCode } = params;
+
+      const command = new ConfirmSignUpCommand({
+        ClientId: env.AWS_COGNITO_CLIENT_ID,
+        Username: email,
+        ConfirmationCode: confirmationCode,
+        SecretHash: this.#generateSecretHash(email),
+      });
+
       const response = await this.#cognito.send(command);
-      // success
-      console.log(response);
-    } catch (error) {}
+      return [null, response];
+    } catch (error) {
+      if (error instanceof CodeMismatchException) {
+        return [new CodeMismatchDetailException(error), null];
+      }
+
+      if (error instanceof ExpiredCodeException) {
+        return [new ExpiredCodeDetailException(error), null];
+      }
+
+      return [new UnknownException(), null];
+    }
   }
 
-  public async signIn(credentials: AuthenticationParams): Promise<void> {
+  public async signIn(credentials: SignInParams): Promise<void> {
     const { email, password } = credentials;
 
     const command = new InitiateAuthCommand({

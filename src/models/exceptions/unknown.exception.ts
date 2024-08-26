@@ -7,7 +7,7 @@ export class UnknownException extends ProblemDetailException {
       "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500",
       StatusCodes.INTERNAL_SERVER_ERROR,
       "Erro desconhecido.",
-      "Ocorreu um erro desconhecido."
+      "Ocorreu um erro desconhecido, tente novamente mais tarde."
   );
   }
 }
