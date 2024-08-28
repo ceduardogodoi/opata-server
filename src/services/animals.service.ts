@@ -1,18 +1,19 @@
-import { Animal } from '@prisma/client';
+import { Animal } from "@prisma/client";
+import { prisma } from "../libs/prisma";
+import { CreateAnimalDTO } from "../validations/animals/create.validations";
 
-import { prisma } from '../libs/prisma'
-import { CreateAnimalDTO } from '../validations/animals/create.validations';
+export class AnimalService {
+  public async save(data: CreateAnimalDTO): Promise<Animal> {
+    const animal = await prisma.animal.create({
+      data,
+    });
 
-export async function saveAnimal(payload: CreateAnimalDTO): Promise<Animal> {
-  const animal = await prisma.animal.create({
-    data: payload,
-  })
+    return animal;
+  }
 
-  return animal
-}
+  public async findAll(): Promise<Animal[]> {
+    const animals = await prisma.animal.findMany();
 
-export async function findAllAnimals(): Promise<Animal[]> {
-  const animals = await prisma.animal.findMany()
-
-  return animals
+    return animals;
+  }
 }
