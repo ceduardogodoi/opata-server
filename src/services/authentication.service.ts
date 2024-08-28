@@ -7,10 +7,13 @@ import {
   ConfirmSignUpCommandOutput,
   ExpiredCodeException,
   InitiateAuthCommand,
+  InitiateAuthCommandOutput,
   InvalidPasswordException,
+  NotAuthorizedException,
   SignUpCommand,
   SignUpCommandOutput,
   UsernameExistsException,
+  UserNotConfirmedException,
 } from "@aws-sdk/client-cognito-identity-provider";
 import { getCognitoInstance } from "../libs/aws-cognito";
 import { SignInParams } from "../validations/authentication/sign-in.validation";
@@ -22,6 +25,8 @@ import { UnknownException } from "../models/exceptions/unknown.exception";
 import { InvalidPasswordDetailException } from "../models/exceptions/invalid-password-detail.exception";
 import { CodeMismatchDetailException } from "../models/exceptions/code-mismatch-detail.exception";
 import { ExpiredCodeDetailException } from "../models/exceptions/expired-code-detail.exception";
+import { NotAuthorizedDetailException } from "../models/exceptions/not-authorized-detail.exception";
+import { UserNotConfirmedDetailException } from "../models/exceptions/user-not-confirmed-detail.exception";
 
 export class AuthenticationService {
   readonly #cognito: CognitoIdentityProviderClient;
@@ -93,20 +98,34 @@ export class AuthenticationService {
     }
   }
 
-  public async signIn(credentials: SignInParams): Promise<void> {
-    const { email, password } = credentials;
+  public async signIn(
+    credentials: SignInParams
+  ): Promise<Result<InitiateAuthCommandOutput>> {
+    try {
+      const { email, password } = credentials;
 
-    const command = new InitiateAuthCommand({
-      AuthFlow: AuthFlowType.USER_PASSWORD_AUTH,
-      AuthParameters: {
-        USERNAME: email,
-        PASSWORD: password,
-        SECRET_HASH: this.#generateSecretHash(email),
-      },
-      ClientId: env.AWS_COGNITO_CLIENT_ID,
-    });
+      const command = new InitiateAuthCommand({
+        AuthFlow: AuthFlowType.USER_PASSWORD_AUTH,
+        AuthParameters: {
+          USERNAME: email,
+          PASSWORD: password,
+          SECRET_HASH: this.#generateSecretHash(email),
+        },
+        ClientId: env.AWS_COGNITO_CLIENT_ID,
+      });
 
-    const response = await this.#cognito.send(command);
-    console.log(response);
+      const response = await this.#cognito.send(command);
+      return [null, response];
+    } catch (error) {
+      if (error instanceof NotAuthorizedException) {
+        return [new NotAuthorizedDetailException(error), null];
+      }
+
+      if (error instanceof UserNotConfirmedException) {
+        return [new UserNotConfirmedDetailException(error), null];
+      }
+
+      return [new UnknownException(), null];
+    }
   }
 }

@@ -53,8 +53,13 @@ authenticationRouter.post(
   async (ctx) => {
     const credentials = signInParamsSchema.parse(ctx.request.body);
 
-    await authenticationService.signIn(credentials);
-
-    ctx.status = StatusCodes.OK;
+    const [error, data] = await authenticationService.signIn(credentials);
+    if (error) {
+      ctx.status = error.status;
+      ctx.body = error;
+    } else {
+      ctx.status = StatusCodes.OK;
+      ctx.body = data;
+    }
   }
 );
