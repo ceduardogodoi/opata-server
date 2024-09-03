@@ -6,6 +6,8 @@ import {
   ConfirmSignUpCommand,
   ConfirmSignUpCommandOutput,
   ExpiredCodeException,
+  GlobalSignOutCommand,
+  GlobalSignOutCommandOutput,
   InitiateAuthCommand,
   InitiateAuthCommandOutput,
   InvalidPasswordException,
@@ -27,6 +29,8 @@ import { CodeMismatchDetailException } from "../models/exceptions/code-mismatch-
 import { ExpiredCodeDetailException } from "../models/exceptions/expired-code-detail.exception";
 import { NotAuthorizedDetailException } from "../models/exceptions/not-authorized-detail.exception";
 import { UserNotConfirmedDetailException } from "../models/exceptions/user-not-confirmed-detail.exception";
+import { SignOutParams } from "../validations/authentication/sign-out.validation";
+import { NotAuthorizedRevokedDetailException } from "../models/exceptions/not-authorized-revoked-detail.exception";
 
 export class AuthenticationService {
   readonly #cognito: CognitoIdentityProviderClient;
@@ -123,6 +127,27 @@ export class AuthenticationService {
 
       if (error instanceof UserNotConfirmedException) {
         return [new UserNotConfirmedDetailException(error), null];
+      }
+
+      return [new UnknownException(), null];
+    }
+  }
+
+  public async signOut(
+    params: SignOutParams
+  ): Promise<Result<GlobalSignOutCommandOutput>> {
+    try {
+      const { accessToken } = params;
+
+      const command = new GlobalSignOutCommand({
+        AccessToken: accessToken,
+      });
+
+      const response = await this.#cognito.send(command);
+      return [null, response];
+    } catch (error) {
+      if (error instanceof NotAuthorizedException) {
+        return [new NotAuthorizedRevokedDetailException(error), null];
       }
 
       return [new UnknownException(), null];

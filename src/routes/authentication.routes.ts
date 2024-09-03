@@ -5,6 +5,7 @@ import { validate } from "../middlewares/validate.middleware";
 import { koaBody } from "koa-body";
 import { signInParamsSchema } from "../validations/authentication/sign-in.validation";
 import { confirmSignUpParamsSchema } from "../validations/authentication/confirm-sign-up.validation";
+import { signOutParamsSchema } from "../validations/authentication/sign-out.validation";
 
 export const authenticationRouter = new Router();
 
@@ -54,6 +55,24 @@ authenticationRouter.post(
     const credentials = signInParamsSchema.parse(ctx.request.body);
 
     const [error, data] = await authenticationService.signIn(credentials);
+    if (error) {
+      ctx.status = error.status;
+      ctx.body = error;
+    } else {
+      ctx.status = StatusCodes.OK;
+      ctx.body = data;
+    }
+  }
+);
+
+authenticationRouter.post(
+  "/sign-out",
+  koaBody(),
+  validate(signOutParamsSchema),
+  async (ctx) => {
+    const params = signOutParamsSchema.parse(ctx.request.body);
+
+    const [error, data] = await authenticationService.signOut(params);
     if (error) {
       ctx.status = error.status;
       ctx.body = error;
