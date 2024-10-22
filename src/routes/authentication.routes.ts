@@ -3,20 +3,23 @@ import { StatusCodes } from "http-status-codes";
 import { AuthenticationService } from "../services/authentication.service";
 import { validate } from "../middlewares/validate.middleware";
 import { koaBody } from "koa-body";
-import { signInParamsSchema } from "../validations/authentication/sign-in.validation";
+import { SignInParamsSchema } from "../validations/authentication/sign-in.validation";
 import { confirmSignUpParamsSchema } from "../validations/authentication/confirm-sign-up.validation";
-import { signOutParamsSchema } from "../validations/authentication/sign-out.validation";
+import { SignOutParamsSchema } from "../validations/authentication/sign-out.validation";
+import { Routes } from "./routes";
 
-export const authenticationRouter = new Router();
+export const authenticationRouter = new Router({
+  prefix: Routes.auth.PREFIX,
+});
 
 const authenticationService = new AuthenticationService();
 
 authenticationRouter.post(
-  "/sign-up",
+  Routes.auth.SIGN_UP,
   koaBody(),
-  validate(signInParamsSchema),
+  validate(SignInParamsSchema),
   async (ctx) => {
-    const credentials = signInParamsSchema.parse(ctx.request.body);
+    const credentials = SignInParamsSchema.parse(ctx.request.body);
 
     const [error, data] = await authenticationService.signUp(credentials);
     if (error) {
@@ -30,7 +33,7 @@ authenticationRouter.post(
 );
 
 authenticationRouter.post(
-  "/sign-up/confirmation",
+  Routes.auth.SIGN_UP_CONFIRMATION,
   koaBody(),
   validate(confirmSignUpParamsSchema),
   async (ctx) => {
@@ -48,11 +51,11 @@ authenticationRouter.post(
 );
 
 authenticationRouter.post(
-  "/sign-in",
+  Routes.auth.SIGN_IN,
   koaBody(),
-  validate(signInParamsSchema),
+  validate(SignInParamsSchema),
   async (ctx) => {
-    const credentials = signInParamsSchema.parse(ctx.request.body);
+    const credentials = SignInParamsSchema.parse(ctx.request.body);
 
     const [error, data] = await authenticationService.signIn(credentials);
     if (error) {
@@ -66,11 +69,11 @@ authenticationRouter.post(
 );
 
 authenticationRouter.post(
-  "/sign-out",
+  Routes.auth.SIGN_OUT,
   koaBody(),
-  validate(signOutParamsSchema),
+  validate(SignOutParamsSchema),
   async (ctx) => {
-    const params = signOutParamsSchema.parse(ctx.request.body);
+    const params = SignOutParamsSchema.parse(ctx.request.body);
 
     const [error, data] = await authenticationService.signOut(params);
     if (error) {

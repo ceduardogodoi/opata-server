@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const signOutParamsSchema = z
+export const SignOutParamsSchema = z
   .object({
     accessToken: z
       .string({ required_error: "acessToken is required." })
@@ -8,4 +8,4 @@ export const signOutParamsSchema = z
   })
   .strip();
 
-export type SignOutParams = z.infer<typeof signOutParamsSchema>;
+export type SignOutParams = z.infer<typeof SignOutParamsSchema>;
