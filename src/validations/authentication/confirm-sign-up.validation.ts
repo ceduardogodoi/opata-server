@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const confirmSignUpParamsSchema = z
+export const ConfirmSignUpParamsSchema = z
   .object({
     email: z.string().email({ message: "Formato de e-mail inválido." }),
     confirmationCode: z
@@ -9,4 +9,4 @@ export const confirmSignUpParamsSchema = z
   })
   .strip();
 
-export type ConfirmSignUpParams = z.infer<typeof confirmSignUpParamsSchema>;
+export type ConfirmSignUpParams = z.infer<typeof ConfirmSignUpParamsSchema>;

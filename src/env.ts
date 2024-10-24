@@ -1,6 +1,7 @@
 import { z } from "zod";
 
-const envSchema = z.object({
+const EnvSchema = z.object({
+  NODE_ENV: z.enum(["development", "production"]),
   DATABASE_NAME: z.string(),
   DATABASE_USER: z.string(),
   DATABASE_PASSWORD: z.string(),
@@ -15,4 +16,4 @@ const envSchema = z.object({
   AWS_COGNITO_USER_POOL_ID: z.string(),
 });
 
-export const env = envSchema.parse(process.env);
+export const env = EnvSchema.parse(process.env);

@@ -4,7 +4,7 @@ import { AuthenticationService } from "../services/authentication.service";
 import { validate } from "../middlewares/validate.middleware";
 import { koaBody } from "koa-body";
 import { SignInParamsSchema } from "../validations/authentication/sign-in.validation";
-import { confirmSignUpParamsSchema } from "../validations/authentication/confirm-sign-up.validation";
+import { ConfirmSignUpParamsSchema } from "../validations/authentication/confirm-sign-up.validation";
 import { SignOutParamsSchema } from "../validations/authentication/sign-out.validation";
 import { Routes } from "./routes";
 
@@ -35,9 +35,9 @@ authenticationRouter.post(
 authenticationRouter.post(
   Routes.auth.SIGN_UP_CONFIRMATION,
   koaBody(),
-  validate(confirmSignUpParamsSchema),
+  validate(ConfirmSignUpParamsSchema),
   async (ctx) => {
-    const params = confirmSignUpParamsSchema.parse(ctx.request.body);
+    const params = ConfirmSignUpParamsSchema.parse(ctx.request.body);
 
     const [error, data] = await authenticationService.confirmSignUp(params);
     if (error) {

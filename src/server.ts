@@ -17,8 +17,11 @@ async function main(): Promise<void> {
   // run
   app.listen(env.PORT, () => {
     console.info(`
-      - Server running on port ${env.PORT}.
+      - Server is running.
       - CTRL + C to stop it.
+
+      - Port:        ${env.PORT}
+      - Environment: ${env.NODE_ENV}
     `);
   });
 }
