@@ -7,6 +7,7 @@ import { SignInParamsSchema } from "../validations/authentication/sign-in.valida
 import { ConfirmSignUpParamsSchema } from "../validations/authentication/confirm-sign-up.validation";
 import { SignOutParamsSchema } from "../validations/authentication/sign-out.validation";
 import { Routes } from "./routes";
+import { CookiesKeys } from "../enums/auth";
 
 export const authenticationRouter = new Router({
   prefix: Routes.auth.PREFIX,
@@ -65,10 +66,14 @@ authenticationRouter.post(
       ctx.status = StatusCodes.OK;
       ctx.body = data;
 
-      const { AuthenticationResult } = data;
-      if (AuthenticationResult?.AccessToken != null) {
-        const { AccessToken } = AuthenticationResult;
-        ctx.request.header.authorization = AccessToken;
+      if (data.AuthenticationResult?.AccessToken != null) {
+        ctx.cookies.set(
+          CookiesKeys.ACCESS_TOKEN,
+          data.AuthenticationResult.AccessToken,
+          {
+            httpOnly: true,
+          }
+        );
       }
     }
   }

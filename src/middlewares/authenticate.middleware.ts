@@ -4,10 +4,12 @@ import { StatusCodes } from "http-status-codes";
 import { env } from "../env";
 import { UnauthorizedException } from "../models/exceptions/unauthorized.exception";
 import { TokenSchema } from "../validations/authentication/token.validation";
+import { CookiesKeys } from "../enums/auth";
 
 export function authenticate() {
   return async function (ctx: Context, next: Next) {
-    const result = TokenSchema.safeParse(ctx.request.header.authorization);
+    const accessToken = ctx.cookies.get(CookiesKeys.ACCESS_TOKEN);
+    const result = TokenSchema.safeParse(accessToken);
 
     if (!result.success) {
       ctx.status = StatusCodes.UNAUTHORIZED;
@@ -24,10 +26,7 @@ export function authenticate() {
     });
 
     try {
-      const [, token] = result.data.split(" ");
-      await verifier.verify(token);
-
-      ctx.request.header.authorization = token;
+      await verifier.verify(result.data);
 
       await next();
     } catch {
