@@ -11,7 +11,13 @@ enum Animals {
   ROOT = "/",
 }
 
+enum Users {
+  PREFIX = "/v1/users",
+  ROOT = "/",
+}
+
 export const Routes = {
   auth: Auth,
   animals: Animals,
+  users: Users,
 };

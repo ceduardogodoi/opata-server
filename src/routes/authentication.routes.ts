@@ -64,6 +64,12 @@ authenticationRouter.post(
     } else {
       ctx.status = StatusCodes.OK;
       ctx.body = data;
+
+      const { AuthenticationResult } = data;
+      if (AuthenticationResult?.AccessToken != null) {
+        const { AccessToken } = AuthenticationResult;
+        ctx.request.header.authorization = AccessToken;
+      }
     }
   }
 );
